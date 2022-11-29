@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>数字时钟</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+			}
+
+			ul {
+				width: 100%;
+				height: 100%;
+				list-style: none;
+				position: relative;
+			}
+
+			#clock {
+				width: 800px;
+				height: 800px;
+				margin: 60px auto;
+				border-radius: 50%;
+				border: 1px solid #000;
+				background-color: #FFF;
+			}
+
+			#seconds {
+				left: 400px;
+				top: 400px;
+				height: 2px;
+				width: 350px;
+				position: absolute;
+				background-color: #0F0;
+				transform-origin: 0 50%;
+				transform: rotateZ(-90deg);
+			}
+
+			#minutes {
+				left: 400px;
+				top: 400px;
+				height: 4px;
+				width: 300px;
+				position: absolute;
+				background-color: #00F;
+				transform-origin: 0 50%;
+				transform: rotateZ(-90deg);
+			}
+
+			#hours {
+				left: 400px;
+				top: 400px;
+				height: 6px;
+				width: 200px;
+				position: absolute;
+				background-color: #F00;
+				transform-origin: 0 50%;
+				transform: rotateZ(-90deg);
+			}
+
+			#scale {
+				width: 800px;
+				height: 800px;
+				position: relative;
+				transform: rotateZ(90deg);
+				transform-origin: 50% 50%;
+			}
+
+			#scale>div {
+				top: 380px;
+				width: 800px;
+				height: 40px;
+				line-height: 40px;
+				text-align: right;
+				position: absolute;
+			}
+
+			#scale>div>div {
+				float: left;
+				width: 20px;
+				margin: 0 30px;
+				text-align: left;
+			}
+		</style>
+	</head>
+	<body>
+		<!-- ul#clock>li#hour+li#minutes+li#seconds -->
+		<ul id="clock">
+			<li id="scale"></li>
+			<li id="seconds"></li>
+			<li id="minutes"></li>
+			<li id="hours"></li>
+		</ul>
+		<script src="jquery-3.4.1.min.js"></script>
+		<script>
+			// 创建表盘刻度
+			for (let index = 1; index <= 60; index++) {
+				if (index % 5) {
+					$('#scale').append('<div style="transform: rotateZ(' + index * 6 + 'deg)">—</div>');
+				} else {
+					$('#scale').append('<div style="transform: rotateZ(' + index * 6 + 'deg)"><div style="transform: rotate(' +
+						(270 - index * 6) + 'deg)">' + (index / 5) + '</div>⚪</div>');
+				}
+			}
+			// 初始化日期、更新时间
+			function datetime_init() {
+				time = new Date();
+				time = {
+					'#hours': time.getHours(), // 0-23
+					'#minutes': time.getMinutes(), // 0-59
+					'#seconds': time.getSeconds() // 0-59
+				};
+				for (let item in time) {
+					$(item).css('transform', "rotateZ(" + ((item === "#hours" ? (time[item] % 12 * 30 +
+						time['#minutes'] / 2) : time[item] * 6) - 90) + "deg)");
+					if (time["seconds"] === 59) {
+						$('#seconds').css('transform', "rotateZ(-6deg)");
+						if (time["minutes"] === 59) {
+							$('#minutes').css('transform', "rotateZ(-6deg)");
+							if (time["hours"] === 23) {
+								$('#hours').css('transform', "rotateZ(-6deg)");
+								time = new Date();
+							}
+						}
+					}
+				}
+			}
+			setInterval(datetime_init, 1000);
+		</script>
+	</body>
+</html>
