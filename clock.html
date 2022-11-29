@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>汉字时钟</title>
+		<style type="text/css">
+			* {
+				margin: 0;
+				padding: 0;
+			}
+
+			hr {
+				top: 400px;
+				left: 400px;
+				height: 1px;
+				width: 420px;
+				position: absolute;
+				background-color: #000000;
+			}
+
+			ul {
+				width: 100%;
+				height: 100%;
+				list-style: none;
+				position: relative;
+			}
+
+			li div,
+			.on {
+				transition: transform linear 0.5s;
+			}
+
+			#hours,
+			#minutes,
+			#seconds {
+				top: 365px;
+				height: 40px;
+				font-size: 16px;
+				position: absolute;
+				transform-origin: 50% 50%;
+			}
+
+			.hours,
+			.minutes,
+			.seconds {
+				height: 40px;
+				line-height: 40px;
+				text-align: right;
+				position: absolute;
+			}
+
+			#clock {
+				width: 800px;
+				height: 800px;
+				margin: 60px auto;
+			}
+
+			#year {
+				top: 365px;
+				left: 295px;
+				width: 240px;
+				height: 40px;
+				margin: auto;
+				font-size: 20px;
+				line-height: 40px;
+				position: absolute;
+			}
+
+			#seconds {
+				left: 0;
+				width: 800px;
+			}
+
+			.seconds {
+				width: 800px;
+			}
+
+			#minutes {
+				left: 100px;
+				width: 600px;
+			}
+
+			.minutes {
+				width: 600px;
+			}
+
+			#hours {
+				left: 200px;
+				width: 400px;
+				height: 40px;
+			}
+
+			.hours {
+				width: 400px;
+			}
+		</style>
+	</head>
+	<body style="overflow-x: hidden; overflow-y: hidden">
+		<div id="clock">
+			<ul>
+				<!--当前时间线-->
+				<hr>
+				<!--年容器-->
+				<li id="year"></li>
+				<!--秒容器-->
+				<li id="seconds" class="on"></li>
+				<!--分容器-->
+				<li id="minutes" class="on"></li>
+				<!--时容器-->
+				<li id="hours" class="on"></li>
+			</ul>
+		</div>
+		<script type="text/javascript">
+			var time = new Date();
+			const character = [
+				"零",
+				"一",
+				"二",
+				"三",
+				"四",
+				"五",
+				"六",
+				"七",
+				"八",
+				"九",
+				"十"
+			];
+			// 数字转换汉字的方法（秒/分/时/日/月/年）number 为数字，util 为单位
+			function transform(number, util) {
+				let text = (util === "年" ? String(number).split("").map(item => character[parseInt(item)]).join("") : number <=
+					10 ?
+					character[number] : !(number % 10) ? character[Math.floor(number / 10)] + "十" : number < 20 ? "十" +
+					character[number % 10] : character[Math.floor(number / 10)] + "十" + character[number % 10]);
+
+				// 靠右对齐
+				// return text + util;
+
+				// 靠左对齐
+				// return text + util + ("年月日".indexOf(util) === -1 ? Array.from(Array(3 - text.length), (v, k) => k).map(item =>
+				// 	"　").join("") : " ");
+
+				// 两端分散对齐
+				// return text.slice(0, 1) + ("年月日".indexOf(util) === -1 ? Array.from(Array(3 - text.length), (v, k) => k).map(item =>
+				// 	"　").join("") : " ") + text.slice(1) + util;
+
+				// 数字靠左对齐、单位靠右对齐
+				return text + ("年月日".indexOf(util) === -1 ? Array.from(Array(3 - text.length), (v, k) => k).map(item =>
+					"　").join("") : " ") + util;
+			}
+			// 范围数字批量转汉字方法（秒/分/时）通过空列表索引创建范围整数，[0, number]
+			function range_transform(number, util) {
+				return Array.from(Array(number), (v, k) => k).map(item => transform(item, util));
+			}
+			// 布局时间容器
+			function layout(item) {
+				range_transform(item === "hours" ? 24 : 60, item === "hours" ? "时" : item === "minutes" ? "分" : " 秒").forEach(
+					function(value, index) {
+						let temp = document.createElement("div");
+						temp.innerText = value;
+						temp.className = item;
+						document.getElementById(item).appendChild(temp);
+					}
+				)
+				// 初始化延时展开动画
+				let index = 0;
+				document.getElementById(item).childNodes.forEach(function(temp) {
+					setTimeout(function() {
+						temp.style.transform = "rotateZ(-" + index * (item === "hours" ? 15 : 6) + "deg)";
+						index++;
+					}, 500 / (item === "hours" ? 24 : 60) * index / 2);
+				})
+			}
+			// 初始化日期、更新时间
+			function datetime_init() {
+				time = new Date();
+				time = {
+					hours: time.getHours(), // 0-23
+					minutes: time.getMinutes(), // 0-59
+					seconds: time.getSeconds() // 0-59
+				};
+				for (let item in time) {
+					if (document.getElementById(item).className === "") {
+						document.getElementById(item).className = "on";
+					}
+					document.getElementById(item).style.transform =
+						"rotate(" + time[item] * (item === "hours" ? 15 : 6) + "deg)";
+					setTimeout(function() {
+						if (time["seconds"] === 59) {
+							document.getElementById("seconds").className = "";
+							document.getElementById("seconds").style.transform = "rotate(-6deg)";
+							if (time["minutes"] === 59) {
+								document.getElementById("minutes").className = "";
+								document.getElementById("minutes").style.transform = "rotate(-6deg)";
+								if (time["hours"] === 23) {
+									document.getElementById("hours").className = "";
+									document.getElementById("hours").style.transform = "rotate(-15deg)";
+									time = new Date();
+									document.getElementById("year").innerText = transform(time.getFullYear(), "年") +
+										transform(time.getMonth() + 1, "月") + transform(time.getDate(), "日");
+								}
+							}
+						}
+					}, 500);
+				}
+			}
+			document.getElementById("year").innerText = transform(time.getFullYear(), "年") +
+				transform(time.getMonth() + 1, "月") + transform(time.getDate(), "日");
+			layout("hours");
+			setTimeout("layout('minutes')", 600);
+			setTimeout("layout('seconds')", 1200);
+			setTimeout("setInterval(datetime_init, 1000)", 2000);
+		</script>
+	</body>
+</html>
