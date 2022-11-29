@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>井字棋</title>
+		<style type="text/css">
+			* {
+				margin: 0;
+				padding: 0;
+			}
+
+			h1 {
+				margin-top: 100px;
+			}
+
+			#well {
+				width: 306px;
+				height: 306px;
+				overflow: hidden;
+				margin: 100px auto;
+				position: relative;
+				border: #000 3px solid;
+			}
+
+			.row {
+				width: 612px;
+				height: 102px;
+				position: absolute;
+			}
+
+			.cell {
+				float: left;
+				width: 100px;
+				height: 100px;
+				font-size: 72px;
+				text-align: center;
+				line-height: 100px;
+				border: #000 1px solid;
+			}
+
+			#row2 {
+				top: 102px;
+			}
+
+			#row3 {
+				top: 204px;
+			}
+		</style>
+	</head>
+	<body onload="init()">
+		<center>
+			<h1>井字棋</h1>
+		</center>
+		<div id="well">
+			<div id="row1" class="row"></div>
+			<div id="row2" class="row"></div>
+			<div id="row3" class="row"></div>
+		</div>
+		<script type="text/javascript">
+			var index = 0;
+
+			function init() {
+				["row1", "row2", "row3"].forEach(function(id_) {
+					let element = document.getElementById(id_);
+					// 清空子节点
+					while (element.hasChildNodes()) {
+						element.removeChild(element.firstChild);
+					}
+					Array.from(Array(6), (v, k) => k).forEach(() => change(-1)); // 自动滑到最左边
+					// 创建格子
+					Array.from(Array(6), (v, k) => k).forEach(function(item) {
+						let temp = document.createElement("div");
+						temp.className = "cell";
+						temp.onclick = go;
+						element.appendChild(temp);
+					});
+				});
+				// 初始化时候随机位置下（针对先手下中间必赢局面，放开概率）
+				document.getElementById(["row1", "row2", "row3"][parseInt(Math.random() * 3)]).childNodes[parseInt(Math.random() * 3)].innerHTML = "O";
+			}
+
+			function win(role) {
+				alert(role + "赢了！"); init();
+			}
+
+			function check() {
+				let board = [];
+				["row1", "row2", "row3"].forEach(function(id_) {
+					let temp = [];
+					document.getElementById(id_).childNodes.forEach(function(item) {
+						temp.push(item.innerText);
+					});
+					board.push(temp);
+				});
+				// 检测水平方向同列
+				for (let row in board) {
+					if (board[row].join("").indexOf("XXX") != -1) {
+						return win("X");
+					} else if (board[row].join("").indexOf("OOO") != -1) {
+						return win("O");
+					}
+				}
+				for (let col = 0; col < 6; col++) {
+					// 检测y=x斜线方向
+					if (col > 1 && board[0][col] && board[0][col] === board[1][col - 1] && board[1][col - 1] === board[2][col - 2]) {
+						return win(document.getElementById("row1").childNodes[col].innerHTML);
+					}
+					// 检测y=x斜线方向
+					else if (col < 4 && board[0][col] && board[0][col] === board[1][col + 1] && board[1][col + 1] === board[2][col + 2]) {
+						return win(document.getElementById("row1").childNodes[col].innerHTML);
+					}
+					// 检测垂直方向同列
+					if (board[2][col] && board[0][col] === board[1][col] && board[1][col] === board[2][col]) {
+						return win(document.getElementById("row1").childNodes[col].innerHTML);
+					}
+				}
+			}
+
+			function go(element) {
+				if (element.srcElement.innerHTML) {
+					return alert("此处已有棋子~");
+				} else if (index % 2) {
+					element.srcElement.innerHTML = "O";
+				} else {
+					element.srcElement.innerHTML = "X";
+				}
+				index++;
+				setTimeout(check, 100);
+			}
+
+			function change(delta) {
+				// delta 为正，鼠标滚轮向下，井字棋向左移动，反之向右移动
+				["row1", "row2", "row3"].forEach(function(item) {
+					let temp = document.getElementById(item);
+					let left = parseInt((temp.style.left || "0px").replace("px", ""));
+					if (left === 0 && delta > 0) {
+						temp.style.left = left - 102 * delta + "px";
+					} else if (left === -306 && delta < 0) {
+						temp.style.left = left - 102 * delta + "px";
+					} else if (left > -306 && left < 0) {
+						temp.style.left = (left - 102 * delta) + "px";
+					}
+				});
+			}
+			document.getElementById("well").addEventListener("mousewheel", function(event) {
+				change(event.deltaY > 0 ? 1 : -1);  // 防止滑动过猛出现BUG
+			});
+		</script>
+	</body>
+</html>
